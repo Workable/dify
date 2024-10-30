@@ -111,6 +111,8 @@ const EmbeddedChatbotWrapper = () => {
   const themeBuilder = useThemeContext()
 
   const {
+    chatReloadKey_HACK,
+
     appInfoError,
     appInfoLoading,
     appData,
@@ -139,6 +141,8 @@ const EmbeddedChatbotWrapper = () => {
   } = useEmbeddedChatbot()
 
   return <EmbeddedChatbotContext.Provider value={{
+    chatReloadKey_HACK,
+
     appInfoError,
     appInfoLoading,
     appData,

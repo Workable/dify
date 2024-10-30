@@ -16,6 +16,8 @@ import type {
 } from '@/models/share'
 
 export type EmbeddedChatbotContextValue = {
+  chatReloadKey_HACK: number
+
   appInfoError?: any
   appInfoLoading?: boolean
   appMeta?: AppMeta
@@ -46,6 +48,8 @@ export type EmbeddedChatbotContextValue = {
 }
 
 export const EmbeddedChatbotContext = createContext<EmbeddedChatbotContextValue>({
+  chatReloadKey_HACK: 0,
+
   currentConversationId: '',
   appPrevChatList: [],
   pinnedConversationList: [],
