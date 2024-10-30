@@ -116,6 +116,9 @@
     // Function to create the chat button
     function createButton() {
       const containerDiv = document.createElement("div");
+      const {initialVisible = true} = config
+      containerDiv.hidden = !initialVisible
+
       // Apply custom properties from config
       Object.entries(config.containerProps || {}).forEach(([key, value]) => {
         if (key === "className") {
@@ -162,32 +165,26 @@
       const displayDiv = document.createElement("div");
       displayDiv.style.cssText =
         "display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; z-index: 2147483647;";
-      displayDiv.innerHTML = svgIcons.open;
+      displayDiv.innerHTML = svgIcons.close;
       containerDiv.appendChild(displayDiv);
       document.body.appendChild(containerDiv);
 
+      const targetIframe = document.getElementById(iframeId);
+      if (!targetIframe) {
+        containerDiv.appendChild(createIframe());
+        resetIframePosition();
+        containerDiv.title = "Exit (ESC)";
+      }
+
       // Add click event listener to toggle chatbot
       containerDiv.addEventListener("click", function () {
-        const targetIframe = document.getElementById(iframeId);
-        if (!targetIframe) {
-          containerDiv.appendChild(createIframe());
-          resetIframePosition();
-          this.title = "Exit (ESC)";
-          displayDiv.innerHTML = svgIcons.close;
-          document.addEventListener('keydown', handleEscKey);
-          return;
-        }
-        targetIframe.style.display = targetIframe.style.display === "none" ? "block" : "none";
-        displayDiv.innerHTML = targetIframe.style.display === "none" ? svgIcons.open : svgIcons.close;
+        containerDiv.hidden = !containerDiv.hidden;
 
-        if (targetIframe.style.display === "none") {
+        if (containerDiv.hidden) {
           document.removeEventListener('keydown', handleEscKey);
         } else {
           document.addEventListener('keydown', handleEscKey);
         }
-
-
-        resetIframePosition();
       });
 
       // Enable dragging if specified in config
@@ -258,20 +255,83 @@
     if (!document.getElementById(buttonId)) {
       createButton();
     }
-  }
 
-  // Add esc Exit keyboard event triggered
-  function handleEscKey(event) {
-    if (event.key === 'Escape') {
-      const targetIframe = document.getElementById(iframeId);
+    // const doc = window.document;
+    // const currentScript = doc.currentScript || doc.head.querySelector(`script[id="${config.token}"]`);
+    // const currentScript = doc.head.querySelector(`script[id="${config.token}"]`);
+    // const embedPath = currentScript.getAttribute("src")?.replace("embed.js", "")?.replace("embed.min.js", "");;
+
+    // function normalizeTargetOrigin(targetOrigin) {
+    //   return targetOrigin === "null" ? "*" : targetOrigin;
+    // }
+
+    // const targetOrigin = embedPath
+    //   ? normalizeTargetOrigin(new URL(embedPath).origin)
+    //   : "*";
+
+    // function isEventTrusted(event) {
+    //   return Boolean(
+    //     (event.origin === targetOrigin || targetOrigin === "*") && event.data
+    //   );
+    // }
+
+    // const targetIframe = document.getElementById(iframeId);
+
+    // TODO: postMessage might not be needed at all
+    // function postMessage(obj) {
+    //   targetIframe.contentWindow?.postMessage(obj, targetOrigin);
+    // }
+
+    function showWidget() {
+      let button = document.getElementById(buttonId);
+      document.addEventListener("keydown", handleEscKey);
+      button.hidden = false;
+      resetIframePosition();
+    }
+
+    function hideWidget() {
       const button = document.getElementById(buttonId);
-      if (targetIframe && targetIframe.style.display !== 'none') {
-        targetIframe.style.display = 'none';
-        button.querySelector('div').innerHTML = svgIcons.open;
+      document.removeEventListener("keydown", handleEscKey);
+      button.hidden = true;
+    }
+
+    // Add esc Exit keyboard event triggered
+    function handleEscKey(event) {
+      if (event.key === "Escape") {
+        hideWidget();
       }
     }
+
+    document.addEventListener('keydown', handleEscKey);
+
+    // Init Dify api
+    window.Dify = (action) => {
+      // if (action === "test") {
+      //   postMessage({ action: "message-from-embed" });
+      // } else
+      if (action === "showWidget") {
+        showWidget();
+      } else if (action === "hideWidget") {
+        hideWidget();
+      } else {
+        console.log(`Unknown action: ${action}`);
+      }
+    };
+
+    // Because embedChatbot function is async, we use a callback
+    if (typeof config.onLoad === 'function') {
+      config.onLoad();
+    }
+
+    // TODO: remove if not needed
+    //
+    // window.addEventListener("message", (e) => {
+    //   if (!isEventTrusted(e)) {
+    //     return;
+    //   }
+    //   console.log("embed.js - message:", e);
+    // });
   }
-  document.addEventListener('keydown', handleEscKey);
 
   // Set the embedChatbot function to run when the body is loaded,Avoid infinite nesting
   if (config?.dynamicScript) {
