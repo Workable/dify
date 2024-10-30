@@ -8,7 +8,6 @@ import type {
 import { useChat } from '../chat/hooks'
 import { getLastAnswer } from '../utils'
 import { useEmbeddedChatbotContext } from './context'
-import ConfigPanel from './config-panel'
 import { isDify } from './utils'
 import cn from '@/utils/classnames'
 import {
@@ -119,27 +118,6 @@ const ChatWrapper = () => {
     doSend(question.content, question.message_files, lastAnswer)
   }, [chatList, handleUpdateChatList, doSend])
 
-  const chatNode = useMemo(() => {
-    if (inputsForms.length) {
-      return (
-        <>
-          {!currentConversationId && (
-            <div className={cn('mx-auto w-full max-w-full tablet:px-4', isMobile && 'px-4')}>
-              <div className='mb-6' />
-              <ConfigPanel />
-              <div
-                className='my-6 h-[1px]'
-                style={{ background: 'linear-gradient(90deg, rgba(242, 244, 247, 0.00) 0%, #F2F4F7 49.17%, rgba(242, 244, 247, 0.00) 100%)' }}
-              />
-            </div>
-          )}
-        </>
-      )
-    }
-
-    return null
-  }, [currentConversationId, inputsForms, isMobile])
-
   const answerIcon = isDify()
     ? <LogoAvatar className='relative shrink-0' />
     : (appData?.site && appData.site.use_icon_as_answer_icon)
@@ -165,7 +143,6 @@ const ChatWrapper = () => {
       inputsForm={inputsForms}
       onRegenerate={doRegenerate}
       onStopResponding={handleStop}
-      chatNode={chatNode}
       allToolIcons={appMeta?.tool_icons || {}}
       onFeedback={handleFeedback}
       suggestedQuestions={suggestedQuestions}
@@ -176,4 +153,9 @@ const ChatWrapper = () => {
   )
 }
 
-export default ChatWrapper
+const Wrapper = () => {
+  const { chatReloadKey_HACK } = useEmbeddedChatbotContext()
+  return <ChatWrapper key={chatReloadKey_HACK} />
+}
+
+export default Wrapper

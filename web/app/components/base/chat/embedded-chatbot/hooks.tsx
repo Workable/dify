@@ -37,6 +37,8 @@ export const useEmbeddedChatbot = () => {
   const isInstalledApp = false
   const { data: appInfo, isLoading: appInfoLoading, error: appInfoError } = useSWR('appInfo', fetchAppInfo)
 
+  const [chatReloadKey_HACK, setChatReloadKey_HACK] = useState(0)
+
   const appData = useMemo(() => {
     return appInfo
   }, [appInfo])
@@ -59,7 +61,7 @@ export const useEmbeddedChatbot = () => {
       })
     }
   }, [appId, conversationIdInfo, setConversationIdInfo])
-  const [showConfigPanelBeforeChat, setShowConfigPanelBeforeChat] = useState(true)
+  const [showConfigPanelBeforeChat, setShowConfigPanelBeforeChat] = useState(false)
 
   const [newConversationId, setNewConversationId] = useState('')
   const chatShouldReloadKey = useMemo(() => {
@@ -248,6 +250,7 @@ export const useEmbeddedChatbot = () => {
     if (checkInputsRequired()) {
       setShowConfigPanelBeforeChat(false)
       setShowNewConversationItemInList(true)
+      setChatReloadKey_HACK(prev => prev + 1)
     }
   }, [setShowConfigPanelBeforeChat, setShowNewConversationItemInList, checkInputsRequired])
   const currentChatInstanceRef = useRef<{ handleStop: () => void }>({ handleStop: () => { } })
@@ -270,11 +273,11 @@ export const useEmbeddedChatbot = () => {
     }
     else if (currentConversationId) {
       handleConversationIdInfoChange('')
-      setShowConfigPanelBeforeChat(true)
       setShowNewConversationItemInList(true)
-      handleNewConversationInputsChange({})
+
+      handleStartChat()
     }
-  }, [handleChangeConversation, currentConversationId, handleConversationIdInfoChange, setShowConfigPanelBeforeChat, setShowNewConversationItemInList, showNewConversationItemInList, handleNewConversationInputsChange])
+  }, [handleChangeConversation, currentConversationId, handleConversationIdInfoChange, setShowNewConversationItemInList, handleStartChat, showNewConversationItemInList])
 
   const handleNewConversationCompleted = useCallback((newConversationId: string) => {
     setNewConversationId(newConversationId)
@@ -289,6 +292,8 @@ export const useEmbeddedChatbot = () => {
   }, [isInstalledApp, appId, t, notify])
 
   return {
+    chatReloadKey_HACK,
+
     appInfoError,
     appInfoLoading,
     isInstalledApp,
