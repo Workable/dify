@@ -7,7 +7,6 @@ import {
 import { useTranslation } from 'react-i18next'
 import type { ChatItem } from '../../types'
 import { useChatContext } from '../context'
-import RegenerateBtn from '@/app/components/base/regenerate-btn'
 import cn from '@/utils/classnames'
 import CopyBtn from '@/app/components/base/copy-btn'
 import { MessageFast } from '@/app/components/base/icons/src/vender/solid/communication'
@@ -39,7 +38,6 @@ const Operation: FC<OperationProps> = ({
   maxSize,
   contentWidth,
   hasWorkflowProcess,
-  noChatInput,
 }) => {
   const { t } = useTranslation()
   const {
@@ -48,7 +46,6 @@ const Operation: FC<OperationProps> = ({
     onAnnotationEdited,
     onAnnotationRemoved,
     onFeedback,
-    onRegenerate,
   } = useChatContext()
   const [isShowReplyModal, setIsShowReplyModal] = useState(false)
   const {
@@ -162,9 +159,6 @@ const Operation: FC<OperationProps> = ({
               </div>
             </div>
           )
-        }
-        {
-          !isOpeningStatement && !noChatInput && <RegenerateBtn className='hidden group-hover:block mr-1' onClick={() => onRegenerate?.(item)} />
         }
         {
           config?.supportFeedback && !localFeedback?.rating && onFeedback && !isOpeningStatement && (
