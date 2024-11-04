@@ -4,8 +4,8 @@ import type {
 } from 'react'
 import {
   memo,
-  useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react'
@@ -34,6 +34,10 @@ import AgentLogModal from '@/app/components/base/agent-log-modal'
 import PromptLogModal from '@/app/components/base/prompt-log-modal'
 import { useStore as useAppStore } from '@/app/components/app/store'
 import type { AppData } from '@/models/share'
+
+const scrollContainerToBottom = (container: HTMLDivElement) => {
+  container.scrollTop = container.scrollHeight
+}
 
 export type ChatProps = {
   appData?: AppData
@@ -122,60 +126,78 @@ const Chat: FC<ChatProps> = ({
   const chatFooterRef = useRef<HTMLDivElement>(null)
   const chatFooterInnerRef = useRef<HTMLDivElement>(null)
   const userScrolledRef = useRef(false)
+  const lastAnswerRef = useRef<HTMLDivElement>(null)
 
-  const handleScrollToBottom = useCallback(() => {
-    if (chatList.length > 1 && chatContainerRef.current && !userScrolledRef.current)
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
-  }, [chatList.length])
+  const newItemsExist = useMemo(() => chatList.some(item => !!item.workflowProcess), [chatList])
+  const chatListWithoutAnswerPlaceholder = useMemo(() =>
+    chatList.filter((item) => {
+      if (item.isAnswer && item.id.startsWith('answer-placeholder-'))
+        return false
+      return true
+    })
+  , [chatList])
 
-  const handleWindowResize = useCallback(() => {
-    if (chatContainerRef.current)
-      setWidth(document.body.clientWidth - (chatContainerRef.current?.clientWidth + 16) - 8)
+  useEffect(() => {
+    const chatContainer = chatContainerRef.current
+    if (!chatContainer)
+      return
 
-    if (chatContainerRef.current && chatFooterRef.current)
-      chatFooterRef.current.style.width = `${chatContainerRef.current.clientWidth}px`
+    if (!newItemsExist) {
+      scrollContainerToBottom(chatContainer)
+      return
+    }
 
-    if (chatContainerInnerRef.current && chatFooterInnerRef.current)
-      chatFooterInnerRef.current.style.width = `${chatContainerInnerRef.current.clientWidth}px`
+    if (userScrolledRef.current)
+      return
+
+    if (lastAnswerRef.current) {
+      lastAnswerRef.current.scrollIntoView(true)
+      return
+    }
+
+    if (chatListWithoutAnswerPlaceholder.length > 1)
+      scrollContainerToBottom(chatContainer)
+  }, [chatListWithoutAnswerPlaceholder.length, newItemsExist])
+
+  useEffect(() => {
+    const handleWindowResize = () => {
+      const chatContainer = chatContainerRef.current
+
+      if (chatContainer)
+        setWidth(document.body.clientWidth - (chatContainer.clientWidth + 16) - 8)
+
+      if (chatContainer && chatFooterRef.current)
+        chatFooterRef.current.style.width = `${chatContainer.clientWidth}px`
+
+      if (chatContainerInnerRef.current && chatFooterInnerRef.current)
+        chatFooterInnerRef.current.style.width = `${chatContainerInnerRef.current.clientWidth}px`
+    }
+
+    handleWindowResize()
+
+    window.addEventListener('resize', debounce(handleWindowResize))
+    return () => window.removeEventListener('resize', handleWindowResize)
   }, [])
 
   useEffect(() => {
-    handleScrollToBottom()
-    handleWindowResize()
-  }, [handleScrollToBottom, handleWindowResize])
+    const chatContainer = chatContainerRef.current
+    if (!chatContainer)
+      return
 
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      requestAnimationFrame(() => {
-        handleScrollToBottom()
-        handleWindowResize()
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const { isIntersecting } = entry
+        if (isIntersecting)
+          scrollContainerToBottom(chatContainer)
       })
+    }, { threshold: 0 })
+
+    observer.observe(chatContainer)
+
+    return () => {
+      observer.disconnect()
     }
-  })
-
-  useEffect(() => {
-    window.addEventListener('resize', debounce(handleWindowResize))
-    return () => window.removeEventListener('resize', handleWindowResize)
-  }, [handleWindowResize])
-
-  useEffect(() => {
-    if (chatFooterRef.current && chatContainerRef.current) {
-      const resizeObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          const { blockSize } = entry.borderBoxSize[0]
-
-          chatContainerRef.current!.style.paddingBottom = `${blockSize}px`
-          handleScrollToBottom()
-        }
-      })
-
-      resizeObserver.observe(chatFooterRef.current)
-
-      return () => {
-        resizeObserver.disconnect()
-      }
-    }
-  }, [handleScrollToBottom])
+  }, [])
 
   useEffect(() => {
     const chatContainer = chatContainerRef.current
@@ -206,7 +228,7 @@ const Chat: FC<ChatProps> = ({
       onAnnotationRemoved={onAnnotationRemoved}
       onFeedback={onFeedback}
     >
-      <div className='relative h-full'>
+      <div className='h-full flex flex-col'>
         <div
           ref={chatContainerRef}
           className={cn('relative h-full overflow-y-auto overflow-x-hidden', chatContainerClassName)}
@@ -219,9 +241,14 @@ const Chat: FC<ChatProps> = ({
             {
               chatList.map((item, index) => {
                 if (item.isAnswer) {
-                  const isLast = item.id === chatList[chatList.length - 1]?.id
+                  const lastItem = chatList[chatList.length - 1]
+                  const isLastAnswer = item.id === lastItem.id
+                  const isPlaceholder = item.id.startsWith('answer-placeholder-')
+                  const ref = (lastItem.isAnswer && isLastAnswer && !isPlaceholder) ? lastAnswerRef : undefined
+
                   return (
                     <Answer
+                      ref={ref}
                       appData={appData}
                       key={item.id}
                       item={item}
@@ -229,7 +256,7 @@ const Chat: FC<ChatProps> = ({
                       index={index}
                       config={config}
                       answerIcon={answerIcon}
-                      responding={isLast && isResponding}
+                      responding={isLastAnswer && isResponding}
                       showPromptLog={showPromptLog}
                       chatAnswerContainerInner={chatAnswerContainerInner}
                       hideProcessDetail={hideProcessDetail}
@@ -251,7 +278,7 @@ const Chat: FC<ChatProps> = ({
           </div>
         </div>
         <div
-          className={`absolute bottom-0 ${(hasTryToAsk || !noChatInput || !noStopResponding) && chatFooterClassName}`}
+          className={`${(hasTryToAsk || !noChatInput || !noStopResponding) && chatFooterClassName}`}
           ref={chatFooterRef}
           style={{
             background: 'linear-gradient(0deg, #F9FAFB 40%, rgba(255, 255, 255, 0.00) 100%)',
