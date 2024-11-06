@@ -173,10 +173,12 @@ const Chat: FC<ChatProps> = ({
         chatFooterInnerRef.current.style.width = `${chatContainerInnerRef.current.clientWidth}px`
     }
 
+    const handleWindowResizeDebounced = debounce(handleWindowResize)
+
     handleWindowResize()
 
-    window.addEventListener('resize', debounce(handleWindowResize))
-    return () => window.removeEventListener('resize', handleWindowResize)
+    window.addEventListener('resize', handleWindowResizeDebounced)
+    return () => window.removeEventListener('resize', handleWindowResizeDebounced)
   }, [])
 
   useEffect(() => {
