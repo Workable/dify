@@ -26,7 +26,7 @@ import ChatInputArea from './chat-input-area'
 import TryToAsk from './try-to-ask'
 import { ChatContextProvider } from './context'
 import type { InputForm } from './type'
-import { isZendeskTicketCreationQuestion } from './utils'
+import { shouldHideItem } from './utils'
 import cn from '@/utils/classnames'
 import type { Emoji } from '@/app/components/tools/types'
 import Button from '@/app/components/base/button'
@@ -243,6 +243,9 @@ const Chat: FC<ChatProps> = ({
           >
             {
               chatList.map((item, index) => {
+                if (shouldHideItem(item))
+                  return null
+
                 if (item.isAnswer) {
                   const lastItem = chatList[chatList.length - 1]
                   const isLastAnswer = item.id === lastItem.id
@@ -268,9 +271,6 @@ const Chat: FC<ChatProps> = ({
                     />
                   )
                 }
-
-                if (isZendeskTicketCreationQuestion(item))
-                  return null
 
                 return (
                   <Question

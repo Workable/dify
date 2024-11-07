@@ -33,20 +33,36 @@ export const getProcessedInputs = (inputs: Record<string, any>, inputsForm: Inpu
   return processedInputs
 }
 
-const TICKET_CREATION_KEYS = ['fullname', 'email', 'question'] as const
-
-export const isZendeskTicketCreationQuestion = (item: ChatItem): boolean => {
-  if (item.isAnswer)
-    return false
-
+const stringToObject = (str: string): Record<string, unknown> | null => {
   try {
-    const maybeObject = JSON.parse(item.content)
+    const maybeObject = JSON.parse(str)
     if (!isPlainObject(maybeObject))
-      return false
+      return null
     const obj: Record<string, unknown> = maybeObject
-    return TICKET_CREATION_KEYS.every(key => key in obj)
+    return obj
   }
   catch {
-    return false
+    return null
   }
+}
+
+const TICKET_CREATION_KEYS = ['fullname', 'email', 'question'] as const
+const isZendeskTicketCreationFormDataQuestion = (item: ChatItem): boolean => {
+  if (item.isAnswer)
+    return false
+  const obj = stringToObject(item.content)
+  return !!obj && TICKET_CREATION_KEYS.every(key => key in obj)
+}
+
+const LINK_REQUISITION_TO_JOB_KEYS = ['fullname', 'email', 'job_url', 'req_id'] as const
+const isLinkRequisitionToJobFormDataQuestion = (item: ChatItem): boolean => {
+  if (item.isAnswer)
+    return false
+  const obj = stringToObject(item.content)
+  return !!obj && LINK_REQUISITION_TO_JOB_KEYS.every(key => key in obj)
+}
+
+export const shouldHideItem = (item: ChatItem): boolean => {
+  const predicates = [isZendeskTicketCreationFormDataQuestion, isLinkRequisitionToJobFormDataQuestion]
+  return predicates.some(predicate => predicate(item))
 }
