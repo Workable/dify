@@ -26,6 +26,7 @@ import ChatInputArea from './chat-input-area'
 import TryToAsk from './try-to-ask'
 import { ChatContextProvider } from './context'
 import type { InputForm } from './type'
+import { isZendeskTicketCreationQuestion } from './utils'
 import cn from '@/utils/classnames'
 import type { Emoji } from '@/app/components/tools/types'
 import Button from '@/app/components/base/button'
@@ -267,6 +268,10 @@ const Chat: FC<ChatProps> = ({
                     />
                   )
                 }
+
+                if (isZendeskTicketCreationQuestion(item))
+                  return null
+
                 return (
                   <Question
                     key={item.id}
