@@ -1,3 +1,5 @@
+import { isPlainObject } from 'lodash-es'
+import type { ChatItem } from '../types'
 import type { InputForm } from './type'
 import { InputVarType } from '@/app/components/workflow/types'
 import { getProcessedFiles } from '@/app/components/base/file-uploader/utils'
@@ -29,4 +31,22 @@ export const getProcessedInputs = (inputs: Record<string, any>, inputsForm: Inpu
   })
 
   return processedInputs
+}
+
+const TICKET_CREATION_KEYS = ['fullname', 'email', 'question'] as const
+
+export const isZendeskTicketCreationQuestion = (item: ChatItem): boolean => {
+  if (item.isAnswer)
+    return false
+
+  try {
+    const maybeObject = JSON.parse(item.content)
+    if (!isPlainObject(maybeObject))
+      return false
+    const obj: Record<string, unknown> = maybeObject
+    return TICKET_CREATION_KEYS.every(key => key in obj)
+  }
+  catch {
+    return false
+  }
 }
