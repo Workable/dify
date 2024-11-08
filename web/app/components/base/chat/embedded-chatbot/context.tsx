@@ -17,6 +17,7 @@ import type {
 
 export type EmbeddedChatbotContextValue = {
   chatReloadKey_HACK: number
+  avatar?: string
 
   appInfoError?: any
   appInfoLoading?: boolean

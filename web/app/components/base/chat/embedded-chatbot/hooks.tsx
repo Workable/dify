@@ -93,6 +93,10 @@ export const useEmbeddedChatbot = () => {
   const newConversationInputsRef = useRef<Record<string, any>>({})
   const [newConversationInputs, setNewConversationInputs] = useState<Record<string, any>>({})
   const [initInputs, setInitInputs] = useState<Record<string, any>>({})
+
+  // Custom by Workable
+  const avatar: string | undefined = initInputs.avatar
+
   const handleNewConversationInputsChange = useCallback((newInputs: Record<string, any>) => {
     newConversationInputsRef.current = newInputs
     setNewConversationInputs(newInputs)
@@ -293,6 +297,7 @@ export const useEmbeddedChatbot = () => {
 
   return {
     chatReloadKey_HACK,
+    avatar,
 
     appInfoError,
     appInfoLoading,

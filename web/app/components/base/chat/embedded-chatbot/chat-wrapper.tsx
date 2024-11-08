@@ -17,6 +17,7 @@ import {
 } from '@/service/share'
 import LogoAvatar from '@/app/components/base/logo/logo-embedded-chat-avatar'
 import AnswerIcon from '@/app/components/base/answer-icon'
+import Avatar from '@/app/components/base/avatar'
 
 const ChatWrapper = () => {
   const {
@@ -35,6 +36,8 @@ const ChatWrapper = () => {
     handleFeedback,
     currentChatInstanceRef,
     themeBuilder,
+
+    avatar,
   } = useEmbeddedChatbotContext()
   const appConfig = useMemo(() => {
     const config = appParams || {}
@@ -129,6 +132,8 @@ const ChatWrapper = () => {
       />
       : null
 
+  const fullname = newConversationInputs.fullname
+
   return (
     <Chat
       appData={appData}
@@ -146,6 +151,7 @@ const ChatWrapper = () => {
       allToolIcons={appMeta?.tool_icons || {}}
       onFeedback={handleFeedback}
       suggestedQuestions={suggestedQuestions}
+      questionIcon={fullname ? <Avatar avatar={avatar} name={fullname} showInitials size={40} /> : undefined}
       answerIcon={answerIcon}
       hideProcessDetail
       themeBuilder={themeBuilder}

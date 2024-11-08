@@ -112,6 +112,7 @@ const EmbeddedChatbotWrapper = () => {
 
   const {
     chatReloadKey_HACK,
+    avatar,
 
     appInfoError,
     appInfoLoading,
@@ -142,6 +143,7 @@ const EmbeddedChatbotWrapper = () => {
 
   return <EmbeddedChatbotContext.Provider value={{
     chatReloadKey_HACK,
+    avatar,
 
     appInfoError,
     appInfoLoading,
