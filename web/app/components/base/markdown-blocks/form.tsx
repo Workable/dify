@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react'
+import cn from '@/utils/classnames'
 import Button from '@/app/components/base/button'
 import Input from '@/app/components/base/input'
 import Textarea from '@/app/components/base/textarea'
 import { useChatContext } from '@/app/components/base/chat/chat/context'
+
+import './style.css'
 
 enum DATA_FORMAT {
   TEXT = 'text',
@@ -90,21 +93,27 @@ const MarkdownForm = ({ node }: any) => {
           )
         }
         if (child.tagName === SUPPORTED_TAGS.INPUT && Object.values(SUPPORTED_TYPES).includes(child.properties.type)) {
-          return (
-            <Input
-              key={index}
-              type={child.properties.type}
-              name={child.properties.name}
-              placeholder={child.properties.placeholder}
-              value={formValues[child.properties.name]}
-              onChange={(e) => {
-                setFormValues(prevValues => ({
-                  ...prevValues,
-                  [child.properties.name]: e.target.value,
-                }))
-              }}
-            />
-          )
+          if (Object.values(SUPPORTED_TYPES).includes(child.properties.type)) {
+            return (
+              <Input
+                key={index}
+                className={cn(
+                  child.properties.type === 'email' && 'hide-lastpass',
+                )}
+                type={child.properties.type}
+                name={child.properties.name}
+                placeholder={child.properties.placeholder}
+                value={child.properties.value}
+                onChange={(e) => {
+                  e.preventDefault()
+                  child.properties.value = e.target.value
+                }}
+              />
+            )
+          }
+          else {
+            return <p key={index}>Unsupported input type: {child.properties.type}</p>
+          }
         }
         if (child.tagName === SUPPORTED_TAGS.TEXTAREA) {
           return (
