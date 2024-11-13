@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react'
+import cn from '@/utils/classnames'
 import Button from '@/app/components/base/button'
 import Input from '@/app/components/base/input'
 import Textarea from '@/app/components/base/textarea'
 import { useChatContext } from '@/app/components/base/chat/chat/context'
+
+import './style.css'
 
 enum DATA_FORMAT {
   TEXT = 'text',
@@ -93,6 +96,9 @@ const MarkdownForm = ({ node }: any) => {
           return (
             <Input
               key={index}
+              className={cn(
+                child.properties.type === 'email' && 'hide-lastpass',
+              )}
               type={child.properties.type}
               name={child.properties.name}
               placeholder={child.properties.placeholder}

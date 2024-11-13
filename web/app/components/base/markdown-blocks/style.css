@@ -1,0 +1,3 @@
+.hide-lastpass + div[data-lastpass-icon-root] {
+    display: none;
+}
