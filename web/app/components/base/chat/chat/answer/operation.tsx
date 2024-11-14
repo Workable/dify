@@ -7,6 +7,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import type { ChatItem } from '../../types'
 import { useChatContext } from '../context'
+import { isFormAnswer } from '../utils'
 import cn from '@/utils/classnames'
 import CopyBtn from '@/app/components/base/copy-btn'
 import { MessageFast } from '@/app/components/base/icons/src/vender/solid/communication'
@@ -94,6 +95,8 @@ const Operation: FC<OperationProps> = ({
 
   const positionRight = useMemo(() => operationWidth < maxSize, [operationWidth, maxSize])
 
+  const isForm = useMemo(() => isFormAnswer(item), [item])
+
   return (
     <>
       <div
@@ -105,7 +108,7 @@ const Operation: FC<OperationProps> = ({
         )}
         style={(!hasWorkflowProcess && positionRight) ? { left: contentWidth + 8 } : {}}
       >
-        {!isOpeningStatement && (
+        {!isForm && !isOpeningStatement && (
           <CopyBtn
             value={content}
             className='hidden group-hover:block'
@@ -161,7 +164,7 @@ const Operation: FC<OperationProps> = ({
           )
         }
         {
-          config?.supportFeedback && !localFeedback?.rating && onFeedback && !isOpeningStatement && (
+          !isForm && config?.supportFeedback && !localFeedback?.rating && onFeedback && !isOpeningStatement && (
             <div className='hidden group-hover:flex shrink-0 items-center px-0.5 bg-white border-[0.5px] border-gray-100 shadow-md text-gray-500 rounded-lg'>
               <Tooltip popupContent={t('appDebug.operation.agree')}>
                 <div
@@ -185,7 +188,7 @@ const Operation: FC<OperationProps> = ({
           )
         }
         {
-          config?.supportFeedback && localFeedback?.rating && onFeedback && !isOpeningStatement && (
+          !isForm && config?.supportFeedback && localFeedback?.rating && onFeedback && !isOpeningStatement && (
             <Tooltip
               popupContent={localFeedback.rating === 'like' ? t('appDebug.operation.cancelAgree') : t('appDebug.operation.cancelDisagree')}
             >

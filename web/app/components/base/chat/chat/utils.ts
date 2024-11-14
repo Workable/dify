@@ -66,3 +66,13 @@ export const shouldHideItem = (item: ChatItem): boolean => {
   const predicates = [isZendeskTicketCreationFormDataQuestion, isLinkRequisitionToJobFormDataQuestion]
   return predicates.some(predicate => predicate(item))
 }
+
+export const isFormAnswer = (item: ChatItem): boolean => {
+  if (!item.isAnswer)
+    return false
+
+  const doc = new DOMParser().parseFromString(item.content, 'text/html')
+  const { children } = doc.body
+
+  return children.length === 1 && children[0].tagName.toLowerCase() === 'form'
+}
