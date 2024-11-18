@@ -38,6 +38,10 @@ export const useEmbeddedChatbot = () => {
   const { data: appInfo, isLoading: appInfoLoading, error: appInfoError } = useSWR('appInfo', fetchAppInfo)
 
   const [chatReloadKey_HACK, setChatReloadKey_HACK] = useState(0)
+  const [initInputs, setInitInputs] = useState<Record<string, any>>({})
+
+  // Custom by Workable
+  const avatar: string | undefined = initInputs.avatar
 
   const appData = useMemo(() => {
     return appInfo
@@ -71,7 +75,7 @@ export const useEmbeddedChatbot = () => {
     return currentConversationId
   }, [currentConversationId, newConversationId])
 
-  const { data: appParams } = useSWR(['appParams', isInstalledApp, appId], () => fetchAppParams(isInstalledApp, appId))
+  const { data: appParams } = useSWR(initInputs.url ? ['appParams', isInstalledApp, appId] : null, () => fetchAppParams(isInstalledApp, appId, { url: initInputs.url }))
   const { data: appMeta } = useSWR(['appMeta', isInstalledApp, appId], () => fetchAppMeta(isInstalledApp, appId))
   const { data: appPinnedConversationData } = useSWR(['appConversationData', isInstalledApp, appId, true], () => fetchConversations(isInstalledApp, appId, undefined, true, 100))
   const { data: appConversationData, isLoading: appConversationDataLoading, mutate: mutateAppConversationData } = useSWR(['appConversationData', isInstalledApp, appId, false], () => fetchConversations(isInstalledApp, appId, undefined, false, 100))
@@ -92,10 +96,6 @@ export const useEmbeddedChatbot = () => {
   const { t } = useTranslation()
   const newConversationInputsRef = useRef<Record<string, any>>({})
   const [newConversationInputs, setNewConversationInputs] = useState<Record<string, any>>({})
-  const [initInputs, setInitInputs] = useState<Record<string, any>>({})
-
-  // Custom by Workable
-  const avatar: string | undefined = initInputs.avatar
 
   const handleNewConversationInputsChange = useCallback((newInputs: Record<string, any>) => {
     newConversationInputsRef.current = newInputs

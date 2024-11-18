@@ -139,9 +139,16 @@ export const fetchChatList = async (conversationId: string, isInstalledApp: bool
 //   return get(`variables`)
 // }
 
+type Data = {
+  url: string
+}
+
 // init value. wait for server update
-export const fetchAppParams = async (isInstalledApp: boolean, installedAppId = '') => {
-  return (getAction('get', isInstalledApp))(getUrl('parameters', isInstalledApp, installedAppId)) as Promise<ChatConfig>
+export const fetchAppParams = async (isInstalledApp: boolean, installedAppId = '', data: Data) => {
+  const urlSearchParams = new URLSearchParams({ url: data.url })
+  const queryString = urlSearchParams.toString()
+  const url = [getUrl('parameters', isInstalledApp, installedAppId), queryString].join('?')
+  return (getAction('get', isInstalledApp))(url) as Promise<ChatConfig>
 }
 
 export const fetchSystemFeatures = async () => {
