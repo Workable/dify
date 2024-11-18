@@ -36,7 +36,6 @@ class AppParameterApi(Resource):
             features_dict=features_dict, user_input_form=user_input_form
         )
 
-
 class AppMetaApi(Resource):
     @validate_app_token
     def get(self, app_model: App):
